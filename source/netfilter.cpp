@@ -1,8 +1,10 @@
 #include <netfilter.hpp>
+#include <baseserver.hpp>
 #include <main.hpp>
 #include <GarrysMod/Lua/Interface.h>
 #include <GarrysMod/Lua/LuaInterface.h>
 #include <GarrysMod/Interfaces.hpp>
+#include <GarrysMod/InterfacePointers.hpp>
 #include <stdint.h>
 #include <stddef.h>
 #include <set>
@@ -19,7 +21,7 @@
 #include <utlvector.h>
 #include <bitbuf.h>
 #include <steam/steam_gameserver.h>
-#include <symbolfinder.hpp>
+#include <scanning/symbolfinder.hpp>
 #include <game/server/iplayerinfo.h>
 
 #if defined _WIN32
@@ -272,7 +274,7 @@ namespace netfilter
 			reply_info.tags = " gm:";
 			reply_info.tags += gamemode.name;
 
-			if (!gamemode.workshopid.empty())
+			if (!gamemode.workshopid != 0)
 			{
 				reply_info.tags += " gmws:";
 				reply_info.tags += gamemode.workshopid;
@@ -887,24 +889,7 @@ namespace netfilter
 		if(gameserver_context == nullptr)
 			LUA->ThrowError("Failed to load required CSteamGameServerAPIContext interface.");
 
-#if defined SYSTEM_POSIX
-
-		server = reinterpret_cast<IServer *>(symfinder.ResolveOnBinary(
-			global::engine_lib.c_str(),
-			IServer_sig,
-			IServer_siglen
-		));
-
-#else
-
-		server = *reinterpret_cast<IServer **>(symfinder.ResolveOnBinary(
-			global::engine_lib.c_str(),
-			IServer_sig,
-			IServer_siglen
-		));
-
-#endif
-
+		server = InterfacePointers::Server();
 		if (server == nullptr)
 			LUA->ThrowError("failed to locate IServer");
 
